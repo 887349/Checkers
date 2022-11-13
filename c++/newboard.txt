@@ -1,0 +1,17 @@
+7 o   o   o   o  
+6   o   o   o   o
+5 o   o   o   o  
+4                
+3                
+2   x   x   x   x
+1 x   x   x   x  
+0   x   x   x   x
+\ 0 1 2 3 4 5 6 7
+
+La verifica di termine partita viene fatto dai prof anche nel caso in cui vengono usate tutte le pedine?
+
+pimpl->pos_pieces[i][0]=i%7;
+
+i       = 0 1 2 3 4 5 6 7
+i%7     = 7 6 5 4 3 2 1 0
+7%(i+1) = 0               devo fermarmi prima 
