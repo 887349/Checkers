@@ -3,7 +3,10 @@
 using namespace std;
 
 /* g++ -o nome_eseguibile nome_file.cpp        per compilare
-   ./nome_eseguibile                           per eseguire*/
+   ./nome_eseguibile                           per eseguire
+   cd nome-file                                per entrare in quel path
+   ls                                          per leggere file nel dominio*/
+   
 
 enum piece {x, o, X, O, e};
 struct piece_list{
@@ -48,6 +51,7 @@ int main(){
 
     list* history = nullptr;
 
+    // matrice con solo e
     history = new list;
     for(int i=0; i<8; i++)
         for (int j=0; j<8; j++)
@@ -57,6 +61,7 @@ int main(){
     piece s[8][8];
     int p;
 
+    // matrice scacchiera esatta
     for(int i=0; i<8; i++){
         for (int j=0; j<8; j++){
             if ( (i+j)%2==0 ){
@@ -69,6 +74,7 @@ int main(){
     }
     // push (history, s);
 
+    // prepend della seconda matrice nella lista history
     list* nuovo = new list;
     for(int i=0; i<8; i++)
         for (int j=0; j<8; j++)
@@ -77,28 +83,6 @@ int main(){
     history = nuovo;
 
     stampa (history);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     /* int* vettore = new int(10);
