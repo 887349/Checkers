@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -21,7 +22,8 @@ struct piece_list{
 	pimpl->head=nuova;
     } */
 
-void push(list *history, piece scacchiera[][8]) {
+//errore nel passare history ma chissene visto che mi serve in una classe
+void prepend(list *history, piece scacchiera[][8]) {
     list* nuovo = new list;
     for(int i=0; i<2; i++)
         for (int j=0; j<2; j++)
@@ -57,9 +59,8 @@ int main(){
         for (int j=0; j<8; j++)
             history->scacchiera[i][j] = (piece)4;
 
-    cout << "Inserire dati della nuova scacchiera:"<<endl;
+    // cout << "Inserire dati della nuova scacchiera:"<<endl;
     piece s[8][8];
-    int p;
 
     // matrice scacchiera esatta
     for(int i=0; i<8; i++){
@@ -72,7 +73,7 @@ int main(){
             else s[i][j] = e;
         }
     }
-    // push (history, s);
+    // prepend (history, s);
 
     // prepend della seconda matrice nella lista history
     list* nuovo = new list;
@@ -80,36 +81,67 @@ int main(){
         for (int j=0; j<8; j++)
             nuovo->scacchiera[i][j] = s[i][j];
     nuovo->next = history;
-    history = nuovo;
+    history = nuovo; 
+
+    fstream board;
+    string filename = "prova.txt";
+    board.open(filename, ios::out);
+    piece scacchiera[8][8];
+    
+    if (board.is_open()){
+        for(int i=0; i<8; i++){
+            for (int j=0; j<8; j++){
+                if ( (i+j)%2==0 ){
+                    if (i>=0 and i<=2) board << "o";
+                    else if (i>=5 and i<=7) board << "x";
+                    else board << " ";
+                }
+                else board << " ";
+            }
+            if (i<7) board << "\n";
+        }
+        board.close();
+    } 
+
+    board.open(filename, ios::in);
+    if (board.is_open()){
+        string line;
+        int i=0;
+            while(getline(board, line)){
+                for (int j=0; j<8; j++){
+                    
+                    switch (line[j])
+                    {
+                        case 'x':
+                            s[i][j]=(piece)0;
+                            break;
+                        case 'o':
+                            s[i][j]=(piece)1;
+                            break;
+                        case 'X':
+                            s[i][j]=(piece)2;
+                            break;
+                        case 'O':
+                            s[i][j]=(piece)3;
+                            break;
+                        case ' ':
+                            s[i][j]=(piece)4;
+                            break;
+                    }
+                }
+                ++i;
+            }
+        board.close();
+    }
+    
+    list* nuovo1 = new list;
+    for(int i=0; i<8; i++)
+        for (int j=0; j<8; j++)
+            nuovo1->scacchiera[i][j] = s[i][j];
+    nuovo1->next = history;
+    history = nuovo1; 
 
     stampa (history);
-
-
-    /* int* vettore = new int(10);
-
-     cout << "Inserire dati nel primo vettore"<<endl;
-    for(int i=0; i<5; i++) cin >> vettore [i];
-
-    cout << "Inserito: ";
-    for(int i=0; i<5; i++) cout << vettore [i] << " ";
-    cout << endl; */
-
-    /* piece* scacchiera[4][4];
-    for(int i=0; i<4; i++){
-        for (int j=0; j<4; j++){
-            if (j%2==0) scacchiera[i][j] = (piece*)4;
-            else  scacchiera[i][j] = (piece*)3;
-        }
-    }
-
-    cout << "I dati della scacchiera sono:"<<endl;
-    for(int i=0; i<4; i++){
-        for (int j=0; j<4; j++){
-            if (scacchiera[i][j]==(piece*)4) cout << "e";
-            else cout << "O";
-        }
-        cout<<endl;
-    } */
 
     return 0;
 }

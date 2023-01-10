@@ -113,6 +113,7 @@ In altre parole, se history_offset=0 va restituita la pedina in coordinata (r,c)
 se history_offset=1 va restituita la pedina in coordinata (r,c) della penultima scacchiera vista ...
 Lanciare una player_exception con campo err_type uguale a index_out_of_bounds (msg a scelta) 
 se le coordinate (r,c,history_offset) non esistono in memoria. */
+// CONTROLLARE
 Player::piece Player::operator()(int r, int c, int history_offset) const {
     if (r>7 or r<0 or c>7 or c<0){
         //exception in caso riga fuori posto
@@ -161,9 +162,39 @@ Se il file non esiste oppure se il formato del file è errato, oppure se la scac
 player_exception con err_type uguale a missing_file oppure invalid_board  
 (a piacere. potete specificare meglio di che errore si tratta usando il campo msg che noi comunque non controlleremo). 
 Attenzione: questa funzione non deve verificare la validità dell’ultima mossa! questa verifica è svolta da valid_move().*/
+// almost
 void Player::load_board(const string& filename){
-    
+    fstream board;
+    board.open(filename, ios::in);
 
+    // MANCANO MESSAGGI DI ERRORE
+    // Se il file non esiste oppure se il formato del file è errato, oppure se la scacchiera 
+    // caricata non è valida (esempio: troppe pedine, pedine su celle bianche, ecc …) lanciare una  
+    // player_exception con err_type uguale a missing_file oppure invalid_board  
+
+    if (board.is_open()){
+        string line;
+        int i=0;
+        while(getline(board, line)){
+            for (int j=0; j<8; j++){
+                switch (line[j])
+                {
+                    case 'x': pimpl->history->scacchiera[i][j] = (piece)0;
+                        break;
+                    case 'o': pimpl->history->scacchiera[i][j] = (piece)1;
+                        break;
+                    case 'X': pimpl->history->scacchiera[i][j] = (piece)2;
+                        break;
+                    case 'O': pimpl->history->scacchiera[i][j] = (piece)3;
+                        break;
+                    case ' ': pimpl->history->scacchiera[i][j] = (piece)4;
+                        break;
+                }
+            }
+            ++i;
+        }
+        board.close();
+    }
 }
 
 /* Salvataggio di una scacchiera su file (al percorso “filename”). 
@@ -171,37 +202,33 @@ Se il file esiste già, sovrascriverlo. Deve venire salvata la “history-offset
 (ossia, se history-offset=0, la più recente; se history-offset=1 la penultima, e così via). 
 Se history_offset è più lungo della history, lanciare una player_exception con err_type uguale a index_out_of_bounds. */
 void Player::store_board(const string& filename, int history_offset)const {
-
+    //scorrere su history offeset-volte (si parte da 0 come sempre)
+    //se offset non è raggiunto, lanciare exception
+    //aprire file 
+    //if (board.is_open()){ copiare carattere per carattere la scacchiera }
 }
 
 /* Questa funzione deve: creare una nuova scacchiera (con i pezzi in posizione iniziale, vedi immagine in pagina 1) 
 e infine salvare su file la nuova scacchiera. Nota: la funzione non deve salvare la scacchiera in history. 
 Se il file esiste già sovrascriverlo (altrimenti, crearne uno nuovo). */
+// COMPLETATO
 void Player::init_board(const string& filename) const {
     fstream board;
-    board.open(filename, ios::out); //da controllare se va bene usare ios
+    board.open(filename, ios::trunc);
+    
     if (board.is_open()){
-        // da sostituire con i tipi piece
-        board << "o   o   o   o  \n";
-        board << "  o   o   o   o\n";
-        board << "o   o   o   o  \n";
-        board << "               \n";
-        board << "               \n";
-        board << "  x   x   x   x\n";
-        board << "x   x   x   x  \n";
-        board << "  x   x   x   x";
-        board.close();
-    }
-    piece scacchiera[8][8];
-    for(int i=0; i<8; i++){
-        for (int j=0; j<8; j++){
-            if (i+j%2==0){
-                if (i>=0 and i<=2) scacchiera[i][j] = o;
-                else if (i>=5 and i<=7) scacchiera[i][j] = x;
-                else scacchiera[i][j] = e;
+        for(int i=0; i<8; i++){
+            for (int j=0; j<8; j++){
+                if ( (i+j)%2==0 ){
+                    if (i>=0 and i<=2) board << "o";
+                    else if (i>=5 and i<=7) board << "x";
+                    else board << " ";
+                }
+                else board << " ";
             }
-            else scacchiera[i][j] = e;
+            if (i<7) board << "\n";
         }
+        board.close();
     }
 }
 
@@ -225,7 +252,7 @@ Questo ridurrà le possibilità che la partita entri in loop. Se siete bloccati 
 fate una mossa “vuota” e aggiungete in history una scacchiera identica alla precedente (questo fa perdere la partita, 
 il che è corretto dato che l’avversario vi ha bloccati). */
 void Player::move(){
-
+    //prendi prima pedina a caso e vedi se può muoversi, se sì fai prima mossa disponibile
 }
 
 /* Questa funzione compara le due scacchiere più recenti nella history (l’ultima e la penultima) e 
@@ -244,14 +271,16 @@ non ha eseguito una mossa durante il proprio turno).
 Vedi doc per ulteriori spiegazioni */
 bool Player::valid_move() const {
     // giocatore esegue mossa -> salva nella nuova scacchiera -> se non valida, giocatore squalificato
-
+    // controllo che non muova pedina in pos pari
+    
     return true;
 }
 
 /* La funzione rimuove dalla history la scacchiera più recente. Se la funzione viene chiamata su una history vuota, 
 va lanciata una player_exception con err_type uguale a index_out_of_bounds. */
 void Player::pop(){
-
+    //se history vuota, lancia exception
+    //sposta history a history->next
 }
 
 /* Restituisce true se e solo se l’ultima scacchiera (la più recente) in history è vincente per il giocatore numero player_nr. 
@@ -296,6 +325,8 @@ allora la funzione deve restituire 4 perchè la scacchiera più recente (B) comp
 Se la history è vuota, lanciare una player_exception con err_type uguale a index_out_of_bounds. */
 int Player::recurrence() const {
     int res=0;
-
+    //inizializza matrice e ci butto la scacchiera recente
+    //matrice di supporto per buttarci man man le scacchiere vecchie
+    //confronto, se uguali ++res;
     return res;
 }
