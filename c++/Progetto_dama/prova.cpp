@@ -10,58 +10,68 @@ using namespace std;
    
 
 enum piece {x, o, X, O, e};
-struct piece_list{
-            piece scacchiera [8][8];
-            piece_list* next;
-}; typedef piece_list list;
+struct Impl{
+    struct piece_list{
+        piece scacchiera [8][8];
+        piece_list* next;
+    }; typedef piece_list* list;
 
-/* void Stack_int::push(int elem) { //Prepend
-	Cella* nuova = new Cella;
-	nuova->info = elem;
-	nuova->next = pimpl->head;
-	pimpl->head=nuova;
-    } */
+    list history; 
+    int player_n;   
 
-//errore nel passare history ma chissene visto che mi serve in una classe
-void prepend(list *history, piece scacchiera[][8]) {
-    list* nuovo = new list;
-    for(int i=0; i<2; i++)
-        for (int j=0; j<2; j++)
-            nuovo->scacchiera[i][j] = scacchiera[i][j];
-    nuovo->next = history;
-    history = nuovo;
-}
+    void dealloc_history(){
+        while (history!=nullptr) {
+            list pc = history;
+            history = history->next;
+            delete pc;
+        }
+    }
 
-void stampa (list *history){
-    while (history){
-        for(int i=0; i<8; i++){
-            for (int j=0; j<8; j++){
-                if (history->scacchiera[i][j] == 0) cout << "x ";
-                if (history->scacchiera[i][j] == 1) cout << "o ";
-                if (history->scacchiera[i][j] == 2) cout << "X ";
-                if (history->scacchiera[i][j] == 3) cout << "O ";
-                if (history->scacchiera[i][j] == 4) cout << "e ";
+    //funzione di stampa delle scacchiere
+    void stampa (){
+        list aux = history;
+        while (aux){
+            for(int i=0; i<8; i++){
+                for (int j=0; j<8; j++){
+                    if (aux->scacchiera[i][j] == 1) cout << "o ";
+                    if (aux->scacchiera[i][j] == 2) cout << "X ";
+                    if (aux->scacchiera[i][j] == 3) cout << "O ";
+                    if (aux->scacchiera[i][j] == 0) cout << "x ";
+                    if (aux->scacchiera[i][j] == 4) cout << "e ";
+                }
+                cout << endl;
             }
+            aux = aux->next;
             cout << endl;
         }
-        history = history->next;
-        cout << endl;
     }
-}
+
+    void prepend(piece s[][8]){
+        Impl::list nuovo = new Impl::piece_list;
+        for(int i=0; i<8; i++)
+            for (int j=0; j<8; j++)
+                nuovo->scacchiera[i][j] = s[i][j];
+        nuovo->next = history;
+        history = nuovo; 
+    }
+};
+
+
+
 
 int main(){
-
-    list* history = nullptr;
+    Impl* pimpl = new Impl;
+    pimpl->history = nullptr;
 
     // matrice con solo e
-    history = new list;
+    Impl::list nuovo = new Impl::piece_list;
     for(int i=0; i<8; i++)
         for (int j=0; j<8; j++)
-            history->scacchiera[i][j] = (piece)4;
+            nuovo->scacchiera[i][j] = (piece)4;
+    nuovo->next=pimpl->history;
+    pimpl->history=nuovo;
 
-    // cout << "Inserire dati della nuova scacchiera:"<<endl;
     piece s[8][8];
-
     // matrice scacchiera esatta
     for(int i=0; i<8; i++){
         for (int j=0; j<8; j++){
@@ -73,15 +83,8 @@ int main(){
             else s[i][j] = e;
         }
     }
-    // prepend (history, s);
+    pimpl->prepend (s);
 
-    // prepend della seconda matrice nella lista history
-    list* nuovo = new list;
-    for(int i=0; i<8; i++)
-        for (int j=0; j<8; j++)
-            nuovo->scacchiera[i][j] = s[i][j];
-    nuovo->next = history;
-    history = nuovo; 
 
     fstream board;
     string filename = "prova.txt";
@@ -134,14 +137,13 @@ int main(){
         board.close();
     }
     
-    list* nuovo1 = new list;
-    for(int i=0; i<8; i++)
-        for (int j=0; j<8; j++)
-            nuovo1->scacchiera[i][j] = s[i][j];
-    nuovo1->next = history;
-    history = nuovo1; 
-
-    stampa (history);
+    pimpl->prepend(s);
+    pimpl->stampa();
+    if(pimpl->history==nullptr) cout<<"not good"<<endl;
+    pimpl->dealloc_history();
+    cout<<"dopo la deallocazione"<<endl;
+    pimpl->stampa();
+    if (!pimpl->history) cout<<"good"<<endl;
 
     return 0;
 }
