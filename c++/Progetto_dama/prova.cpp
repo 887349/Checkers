@@ -6,7 +6,8 @@ using namespace std;
 /* g++ -o nome_eseguibile nome_file.cpp        per compilare
    ./nome_eseguibile                           per eseguire
    cd nome-file                                per entrare in quel path
-   ls                                          per leggere file nel dominio*/
+   ls                                          per leggere file nel dominio
+   valgrind --leak-check=full ./eseguibile     per full memory leak check*/
    
 
 enum piece {x, o, X, O, e};

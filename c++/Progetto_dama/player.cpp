@@ -148,7 +148,7 @@ Player::piece Player::operator()(int r, int c, int history_offset) const {
         //scorro fino a scacchiera giusta, finché esistono scacchiere
         while (pimpl->history and history_offset>0) pimpl->history = pimpl->history->next;
         //exception se non esiste scacchiera con quell'offset
-        if (history_offset>0){
+        if (history_offset>0 or !pimpl->history){
             player_exception pe;
             pe.t = player_exception::index_out_of_bounds;
             pe.msg = "Errore! Valore di offset fuori dai limiti";
@@ -185,12 +185,6 @@ void Player::load_board(const string& filename){
     // Se il file non esiste oppure se il formato del file è errato, oppure se la scacchiera 
     // caricata non è valida (esempio: troppe pedine, pedine su celle bianche, ecc …) lanciare una  
     // player_exception con err_type uguale a missing_file oppure invalid_board  
-    /* if (filename.substr(filename.length()-5,4)!=".txt") {
-            player_exception pe;
-            pe.t = player_exception::invalid_board;
-            pe.msg = "Errore! Formato file non valido";
-            throw pe;
-        } */
 
     if (filename.substr(filename.length()-4,4)!=".txt") {
         player_exception pe;
@@ -198,8 +192,6 @@ void Player::load_board(const string& filename){
         pe.msg = "Errore! Formato file non valido";
         throw pe;
     }
-
-
     //MANCA ERRORE IN CUI CI SONO TROPPE PEDINE etc etc
     piece s[8][8];
     if (board.is_open()){
@@ -207,6 +199,7 @@ void Player::load_board(const string& filename){
         int i=0;
         while(getline(board, line)){
             for (int j=0; j<8; j++){
+                // DA CORREGGERE IF
                 if ((i+j)%2!=0 and line[j]!=' ') {
                     player_exception pe;
                     pe.t = player_exception::invalid_board;
@@ -252,22 +245,33 @@ Se il file esiste già sovrascriverlo (altrimenti, crearne uno nuovo). */
 void Player::init_board(const string& filename) const {
     fstream board;
     board.open(filename, ios::out);
-    
-    //posso farla manualmente, ma complichiamoci la vita :)
+    piece s[8][8];
+    for(int i=0; i<8; i++){
+        for (int j=0; j<8; j++){
+            if ( (i+j)%2==0 ){
+                if (i>=0 and i<=2) s[i][j] = o;
+                else if (i>=5 and i<=7) s[i][j] = x;
+                else s[i][j] = e;
+            }
+            else s[i][j] = e;
+        }
+    }
+
     if (board.is_open()){
         for(int i=0; i<8; i++){
             for (int j=0; j<8; j++){
-                if ( (i+j)%2==0 ){
-                    if (i>=0 and i<=2) board << "o";
-                    else if (i>=5 and i<=7) board << "x";
-                    else board << " ";
-                }
-                else board << " ";
+                if (s[i][j] == 0) board << "x";
+                if (s[i][j] == 1) board << "o";
+                if (s[i][j] == 2) board << "X";
+                if (s[i][j] == 3) board << "O";
+                if (s[i][j] == 4) board << " ";
+                if (j<7) board << " ";
             }
             if (i<7) board << "\n";
         }
         board.close();
     }
+    pimpl->prepend(s);
 }
 
 /* Questa è la funzione che implementa la vostra strategia. La funzione deve eseguire una mossa sulle vostre pedine 
@@ -372,7 +376,10 @@ int Player::recurrence() const {
 
 int main(){
     Player p(2);
+
     try{
+        p.init_board("board1.txt");
+        cout << p(3,0,0)<<endl;
         p.load_board("board1.txt");
     }
     catch (player_exception pe){
