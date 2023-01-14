@@ -25,7 +25,7 @@ struct Player::Impl{
     int player_n;   
 
     void dealloc_history(){
-        while (history!=nullptr) {
+        while (history) {
             list pc = history;
             history = history->next;
             delete pc;
@@ -33,12 +33,26 @@ struct Player::Impl{
     }
 
     void prepend(piece s[][8]){
-        Impl::list nuovo = new Impl::piece_list;
+        list nuovo = new piece_list;
         for(int i=0; i<8; i++)
             for (int j=0; j<8; j++)
                 nuovo->scacchiera[i][j] = s[i][j];
         nuovo->next = history;
         history = nuovo; 
+    }
+
+    void append(piece s[][8]){
+        list nuovo = new piece_list;
+        for(int i=0; i<8; i++)
+            for (int j=0; j<8; j++)
+                nuovo->scacchiera[i][j] = s[i][j];
+        nuovo->next=nullptr;
+        if (!history) history=nuovo;
+        else{
+            list aux = history;
+            while (aux->next) aux=aux->next;
+            aux->next=nuovo;
+        }
     }
 };
 
@@ -52,14 +66,15 @@ Il costruttore inizializza una history vuota. */
 /* COMPLETATO */
 Player::Player(int player_nr){
     // errore out of bounds se il player non è nè 1 nè 2.
-    if (player_nr!=1 or player_nr!=2) {
+    if (player_nr!=1 and player_nr!=2) {
         player_exception pe;
         pe.t = player_exception::index_out_of_bounds;
         pe.msg = "Errore! Non è stato selezionato un giocatore valido (1 o 2)";
-        cout<<pe.msg;
+        throw pe;
     }
     else {
         // struct list che salva tutte le scacchiere, history punta alla testa
+        pimpl=new Impl;
         pimpl->history = nullptr;
         pimpl->player_n = player_nr;
     }
@@ -91,17 +106,13 @@ effettuare una nuova allocazione e copia. */
 Player& Player::operator=(const Player& copied_player){
     // dealloco i dati di this
     pimpl->dealloc_history();
-    
     //copio dati di copie_player in nuovo
     pimpl->player_n = copied_player.pimpl->player_n;
     while (copied_player.pimpl->history){
-        //creo nuovo e copio dati
-        Player::Impl::list nuovo = new Player::Impl::piece_list;
         for (int i=0; i<8; i++)
-            for (int j=0; j<8; j++) nuovo->scacchiera[i][j] = copied_player.pimpl->history->scacchiera[i][j];
-        nuovo->next = nullptr;
-        //assegno dati di nuovo a history
-        pimpl->history=nuovo;
+            for (int j=0; j<8; j++) 
+                pimpl->append(copied_player.pimpl->history->scacchiera);        
+        copied_player.pimpl->history=copied_player.pimpl->history->next;
     }
     return *this;
 }
@@ -123,14 +134,14 @@ Player::piece Player::operator()(int r, int c, int history_offset) const {
             player_exception pe;
             pe.t = player_exception::index_out_of_bounds;
             pe.msg = "Errore! Valore di riga fuori dai limiti";
-            cout<<pe.msg;
+            throw pe;
         }
         //exception in caso colonna fuori posto
         if (c>7 or c<0){
             player_exception pe;
             pe.t = player_exception::index_out_of_bounds;
             pe.msg = "Errore! Valore di colonna fuori dai limiti";
-            cout<<pe.msg;
+            throw pe;
         }
     }
     else {
@@ -141,7 +152,7 @@ Player::piece Player::operator()(int r, int c, int history_offset) const {
             player_exception pe;
             pe.t = player_exception::index_out_of_bounds;
             pe.msg = "Errore! Valore di offset fuori dai limiti";
-            cout<<pe.msg;
+            throw pe;
         }
         else return pimpl->history->scacchiera[r][c];
     }
@@ -164,21 +175,44 @@ Se il file non esiste oppure se il formato del file è errato, oppure se la scac
 player_exception con err_type uguale a missing_file oppure invalid_board  
 (a piacere. potete specificare meglio di che errore si tratta usando il campo msg che noi comunque non controlleremo). 
 Attenzione: questa funzione non deve verificare la validità dell’ultima mossa! questa verifica è svolta da valid_move().*/
-// almost
+// almost 
 void Player::load_board(const string& filename){
     fstream board;
     board.open(filename, ios::in);
+    bool error=false;
 
     // MANCANO MESSAGGI DI ERRORE
     // Se il file non esiste oppure se il formato del file è errato, oppure se la scacchiera 
     // caricata non è valida (esempio: troppe pedine, pedine su celle bianche, ecc …) lanciare una  
     // player_exception con err_type uguale a missing_file oppure invalid_board  
+    /* if (filename.substr(filename.length()-5,4)!=".txt") {
+            player_exception pe;
+            pe.t = player_exception::invalid_board;
+            pe.msg = "Errore! Formato file non valido";
+            throw pe;
+        } */
+
+    if (filename.substr(filename.length()-4,4)!=".txt") {
+        player_exception pe;
+        pe.t = player_exception::invalid_board;
+        pe.msg = "Errore! Formato file non valido";
+        throw pe;
+    }
+
+
+    //MANCA ERRORE IN CUI CI SONO TROPPE PEDINE etc etc
     piece s[8][8];
     if (board.is_open()){
         string line;
         int i=0;
         while(getline(board, line)){
             for (int j=0; j<8; j++){
+                if ((i+j)%2!=0 and line[j]!=' ') {
+                    player_exception pe;
+                    pe.t = player_exception::invalid_board;
+                    pe.msg = "Errore! Ci sono pedine in celle bianche";
+                    throw pe;
+                }
                 switch (line[j])
                 {
                     case 'x': s[i][j] = (piece)0;
@@ -208,7 +242,7 @@ void Player::store_board(const string& filename, int history_offset)const {
     //scorrere su history offeset-volte (si parte da 0 come sempre)
     //se offset non arriva a 0, lanciare exception
     //aprire file 
-    //if (board.is_open()){ copiare carattere per carattere la scacchiera }
+    //if (board.is_open()) { copiare carattere per carattere la scacchiera }
 }
 
 /* Questa funzione deve: creare una nuova scacchiera (con i pezzi in posizione iniziale, vedi immagine in pagina 1) 
@@ -217,7 +251,7 @@ Se il file esiste già sovrascriverlo (altrimenti, crearne uno nuovo). */
 // COMPLETATO
 void Player::init_board(const string& filename) const {
     fstream board;
-    board.open(filename, ios::trunc);
+    board.open(filename, ios::out);
     
     //posso farla manualmente, ma complichiamoci la vita :)
     if (board.is_open()){
@@ -257,6 +291,7 @@ fate una mossa “vuota” e aggiungete in history una scacchiera identica alla 
 il che è corretto dato che l’avversario vi ha bloccati). */
 void Player::move(){
     //prendi prima pedina a caso e vedi se può muoversi, se sì fai prima mossa disponibile
+
 }
 
 /* Questa funzione compara le due scacchiere più recenti nella history (l’ultima e la penultima) e 
@@ -333,4 +368,17 @@ int Player::recurrence() const {
     //matrice di supporto per buttarci man man le scacchiere vecchie
     //confronto, se uguali ++res;
     return res;
+}
+
+int main(){
+    Player p(2);
+    try{
+        p.load_board("board1.txt");
+    }
+    catch (player_exception pe){
+        cout << pe.msg << endl;
+    }
+    
+
+    return 0;
 }

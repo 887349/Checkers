@@ -20,7 +20,7 @@ struct Impl{
     int player_n;   
 
     void dealloc_history(){
-        while (history!=nullptr) {
+        while (history) {
             list pc = history;
             history = history->next;
             delete pc;
@@ -54,6 +54,20 @@ struct Impl{
         nuovo->next = history;
         history = nuovo; 
     }
+
+    void append(piece s[][8]){
+        Impl::list nuovo = new Impl::piece_list;
+        for(int i=0; i<8; i++)
+            for (int j=0; j<8; j++)
+                nuovo->scacchiera[i][j] = s[i][j];
+        nuovo->next=nullptr;
+        if(!history) history=nuovo;
+        else {
+            list aux = history;
+            while (aux->next) aux=aux->next;
+            aux->next=nuovo;
+        }
+    }
 };
 
 
@@ -62,16 +76,14 @@ struct Impl{
 int main(){
     Impl* pimpl = new Impl;
     pimpl->history = nullptr;
-
+    piece s[8][8];
     // matrice con solo e
-    Impl::list nuovo = new Impl::piece_list;
     for(int i=0; i<8; i++)
         for (int j=0; j<8; j++)
-            nuovo->scacchiera[i][j] = (piece)4;
-    nuovo->next=pimpl->history;
-    pimpl->history=nuovo;
+            s[i][j] = (piece)4;
+    pimpl->prepend(s);
 
-    piece s[8][8];
+    
     // matrice scacchiera esatta
     for(int i=0; i<8; i++){
         for (int j=0; j<8; j++){
@@ -84,7 +96,6 @@ int main(){
         }
     }
     pimpl->prepend (s);
-
 
     fstream board;
     string filename = "prova.txt";
@@ -144,6 +155,8 @@ int main(){
     cout<<"dopo la deallocazione"<<endl;
     pimpl->stampa();
     if (!pimpl->history) cout<<"good"<<endl;
+    //pimpl->append(s);
+    //pimpl->stampa();
 
     return 0;
 }
