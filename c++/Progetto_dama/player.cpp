@@ -146,15 +146,16 @@ Player::piece Player::operator()(int r, int c, int history_offset) const {
     }
     else {
         //scorro fino a scacchiera giusta, finché esistono scacchiere
-        while (pimpl->history and history_offset>0) pimpl->history = pimpl->history->next;
+        Impl::list aux = pimpl->history;
+        while (pimpl->history and history_offset>0) aux = aux->next;
         //exception se non esiste scacchiera con quell'offset
-        if (history_offset>0 or !pimpl->history){
+        if (history_offset>0 or !aux){
             player_exception pe;
             pe.t = player_exception::index_out_of_bounds;
             pe.msg = "Errore! Valore di offset fuori dai limiti";
             throw pe;
         }
-        else return pimpl->history->scacchiera[r][c];
+        else return aux->scacchiera[r][c];
     }
     return e;
 }
