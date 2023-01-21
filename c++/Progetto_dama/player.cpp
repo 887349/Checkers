@@ -126,21 +126,21 @@ In altre parole, se history_offset=0 va restituita la pedina in coordinata (r,c)
 se history_offset=1 va restituita la pedina in coordinata (r,c) della penultima scacchiera vista ...
 Lanciare una player_exception con campo err_type uguale a index_out_of_bounds (msg a scelta) 
 se le coordinate (r,c,history_offset) non esistono in memoria. */
-// CONTROLLARE
+//COMPLETATO
 Player::piece Player::operator()(int r, int c, int history_offset) const {
     if (r>7 or r<0 or c>7 or c<0){
         //exception in caso riga fuori posto
         if (r>7 or r<0){
             player_exception pe;
             pe.t = player_exception::index_out_of_bounds;
-            pe.msg = "Errore! Valore di riga fuori dai limiti";
+            pe.msg = "Errore! Valore di riga() fuori dai limiti";
             throw pe;
         }
         //exception in caso colonna fuori posto
         if (c>7 or c<0){
             player_exception pe;
             pe.t = player_exception::index_out_of_bounds;
-            pe.msg = "Errore! Valore di colonna fuori dai limiti";
+            pe.msg = "Errore! Valore di colonna() fuori dai limiti";
             throw pe;
         }
     }
@@ -152,12 +152,11 @@ Player::piece Player::operator()(int r, int c, int history_offset) const {
         if (history_offset>0 or !aux){
             player_exception pe;
             pe.t = player_exception::index_out_of_bounds;
-            pe.msg = "Errore! Valore di offset fuori dai limiti";
+            pe.msg = "Errore! Valore di offset() fuori dai limiti";
             throw pe;
         }
         else return aux->scacchiera[r][c];
     }
-    return e;
 }
 
 /* NOTE MIE:
@@ -180,12 +179,6 @@ Attenzione: questa funzione non deve verificare la validità dell’ultima mossa
 void Player::load_board(const string& filename){
     fstream board;
     board.open(filename, ios::in);
-    bool error=false;
-
-    // MANCANO MESSAGGI DI ERRORE
-    // Se il file non esiste oppure se il formato del file è errato, oppure se la scacchiera 
-    // caricata non è valida (esempio: troppe pedine, pedine su celle bianche, ecc …) lanciare una  
-    // player_exception con err_type uguale a missing_file oppure invalid_board  
 
     if (filename.substr(filename.length()-4,4)!=".txt") {
         player_exception pe;
@@ -193,21 +186,24 @@ void Player::load_board(const string& filename){
         pe.msg = "Errore! Formato file non valido";
         throw pe;
     }
-    //MANCA ERRORE IN CUI CI SONO TROPPE PEDINE etc etc
+
+    //MANCA ERRORE PER TROPPE PEDINE etc etc
+
     piece s[8][8];
     if (board.is_open()){
         string line;
         int i=0;
         while(getline(board, line)){
+            int z=0;
             for (int j=0; j<8; j++){
-                // DA CORREGGERE IF
-                if ((i+j)%2!=0 and line[j]!=' ') {
+                if (z%2!=0) z++;
+                if ((i+j)%2!=0 and line[z]!=' ') {
                     player_exception pe;
                     pe.t = player_exception::invalid_board;
                     pe.msg = "Errore! Ci sono pedine in celle bianche";
                     throw pe;
                 }
-                switch (line[j])
+                switch (line[z])
                 {
                     case 'x': s[i][j] = (piece)0;
                         break;
@@ -220,6 +216,7 @@ void Player::load_board(const string& filename){
                     case ' ': s[i][j] = (piece)4;
                         break;
                 }
+                z++;
             }
             ++i;
         }
@@ -232,11 +229,35 @@ void Player::load_board(const string& filename){
 Se il file esiste già, sovrascriverlo. Deve venire salvata la “history-offset”-esima scacchiera più recente 
 (ossia, se history-offset=0, la più recente; se history-offset=1 la penultima, e così via). 
 Se history_offset è più lungo della history, lanciare una player_exception con err_type uguale a index_out_of_bounds. */
+// COMPLETATO(?)
 void Player::store_board(const string& filename, int history_offset)const {
-    //scorrere su history offeset-volte (si parte da 0 come sempre)
-    //se offset non arriva a 0, lanciare exception
-    //aprire file 
-    //if (board.is_open()) { copiare carattere per carattere la scacchiera }
+    //scorro fino a scacchiera giusta, finché esistono scacchiere
+    Impl::list aux = pimpl->history;
+    while (pimpl->history and history_offset>0) aux = aux->next;
+    //exception se non esiste scacchiera con quell'offset
+    if (history_offset>0 or !aux){
+        player_exception pe;
+        pe.t = player_exception::index_out_of_bounds;
+        pe.msg = "errore! valore di offset in store_board fuori dai limiti";
+        throw pe;
+    }
+
+    fstream board;
+    board.open(filename, ios::out);
+    if (board.is_open()){
+        for(int i=0; i<8; i++){
+            for (int j=0; j<8; j++){
+                if (aux->scacchiera[i][j] == 0) board << "x";
+                if (aux->scacchiera[i][j] == 1) board << "o";
+                if (aux->scacchiera[i][j] == 2) board << "X";
+                if (aux->scacchiera[i][j] == 3) board << "O";
+                if (aux->scacchiera[i][j] == 4) board << " ";
+                if (j<7) board << " ";
+            }
+            if (i<7) board << "\n";
+        }
+        board.close();
+    }
 }
 
 /* Questa funzione deve: creare una nuova scacchiera (con i pezzi in posizione iniziale, vedi immagine in pagina 1) 
@@ -272,7 +293,6 @@ void Player::init_board(const string& filename) const {
         }
         board.close();
     }
-    pimpl->prepend(s);
 }
 
 /* Questa è la funzione che implementa la vostra strategia. La funzione deve eseguire una mossa sulle vostre pedine 
@@ -322,44 +342,80 @@ bool Player::valid_move() const {
 
 /* La funzione rimuove dalla history la scacchiera più recente. Se la funzione viene chiamata su una history vuota, 
 va lanciata una player_exception con err_type uguale a index_out_of_bounds. */
+//COMPLETATO(?)
 void Player::pop(){
-    //se history vuota, lancia exception
-    //sposta history a history->next ed elimina nodo precedente
+    if (!pimpl->history){
+        player_exception pe;
+        pe.t=player_exception::index_out_of_bounds;
+        pe.msg="pop chiamata su history vuota";
+        throw pe;
+    }
+    else{
+        Impl::list aux = pimpl->history;
+        pimpl->history=pimpl->history->next;
+        delete aux;
+    }
 }
 
 /* Restituisce true se e solo se l’ultima scacchiera (la più recente) in history è vincente per il giocatore numero player_nr. 
 Se player_nr è diverso da 1 o 2 oppure se la history è vuota, lanciare una player_exception con err_type uguale a index_out_of_bounds. 
-In questa funzione (e nelle successive tre) basta controllare solo  se un giocatore ha finito le pedine; 
+In questa funzione (e nelle successive tre) basta controllare solo se un giocatore ha finito le pedine; 
 non serve verificare la validità della mossa rispetto alla precedente (per questo abbiamo la funzione valid_move()), 
 nè se uno dei due giocatori è bloccato (in questa situazione, alla prossima mossa il giocatore bloccato 
 può solo aggiungere una scacchiera identica o non valida, e quindi perde automaticamente). */
+/*MANCA CONTROLLO CHE TUTTE LE PEDINE NEMICHE SIANO FINITE*/
 bool Player::wins(int player_nr) const {
-
+    // errore out of bounds se il player non è nè 1 nè 2.
+    if (player_nr!=1 and player_nr!=2) {
+        player_exception pe;
+        pe.t = player_exception::index_out_of_bounds;
+        pe.msg = "errore! wins non ha selezionato un giocatore valido (1 o 2)";
+        throw pe;
+    }
     return false;
 }
 
 /* Restituisce true se e solo se l’ultima scacchiera (la più recente) in history è vincente per il 
 giocatore associato all’istanza corrente (this) di Player. Se la history è vuota, 
 lanciare una player_exception con err_type uguale a index_out_of_bounds. */
+//COMPLETATO(?)
 bool Player::wins() const {
-
-    return false;
+    if (!pimpl->history){
+        player_exception pe;
+        pe.t=player_exception::index_out_of_bounds;
+        pe.msg="wins chiamata su history vuota";
+        throw pe;
+    }
+    return wins(pimpl->player_n);
 }
 
 /* Restituisce true se e solo se l’ultima scacchiera (la più recente) in history è perdente per il 
 giocatore numero player_nr. Se player_nr è diverso da 1 o 2 oppure se la history è vuota, 
 lanciare una player_exception con err_type uguale a index_out_of_bounds. */
+//COMPLETATO(?)
 bool Player::loses(int player_nr) const {
-
-    return false;
+    if (player_nr!=1 and player_nr!=2) {
+        player_exception pe;
+        pe.t = player_exception::index_out_of_bounds;
+        pe.msg = "errore! loses non ha selezionato un giocatore valido (1 o 2)";
+        throw pe;
+    }
+    if (player_nr==1) return wins(2);
+    else return wins (1);
 }
 
 /* Restituisce true se e solo se l’ultima scacchiera (la più recente) in history è perdente per il 
 giocatore associato all’istanza corrente (this) di Player. Se la history è vuota, 
 lanciare una player_exception con err_type uguale a index_out_of_bounds. */
+//COMPLETATO(?)
 bool Player::loses() const {
-
-    return false;
+    if (!pimpl->history){
+        player_exception pe;
+        pe.t=player_exception::index_out_of_bounds;
+        pe.msg="loses chiamata su history vuota";
+        throw pe;
+    }
+    return loses(pimpl->player_n);
 }
 
 /* Restituire quante volte la scacchiera più recente compare nella history. 
@@ -367,11 +423,29 @@ Per esempio, se la history contiene le scacchiere A, B, C, B, D, B, E, B
 (dove A,B,C,D,E sono scacchiere distinte e la più recente è quella più a destra), 
 allora la funzione deve restituire 4 perchè la scacchiera più recente (B) compare 4 volte nella history.
 Se la history è vuota, lanciare una player_exception con err_type uguale a index_out_of_bounds. */
+// COMPLETATO (?)
 int Player::recurrence() const {
+    if (!pimpl->history){
+        player_exception pe;
+        pe.t=player_exception::index_out_of_bounds;
+        pe.msg="recurrance chiamata su history vuota";
+        throw pe;
+    }
     int res=0;
-    //inizializza matrice e ci butto la scacchiera recente
-    //matrice di supporto per buttarci man man le scacchiere vecchie
-    //confronto, se uguali ++res;
+    Impl::list aux = pimpl->history->next;
+    int i = 0;
+    while (aux){
+        bool equal = true;
+        while (i<8 and equal){
+            for (int j=0; j<8; j++) {
+                if (pimpl->history->scacchiera[i][j]!=aux->scacchiera[i][j]) 
+                    equal = false;
+            }
+            ++i;
+        }
+        if (equal) ++res;
+        aux = aux->next;
+    }
     return res;
 }
 
@@ -379,8 +453,8 @@ int main(){
     Player p(2);
 
     try{
-        p.init_board("board1.txt");
-        cout << p(3,0,0)<<endl;
+        //p.init_board("board1.txt");
+        //cout << p(3,0,0)<<endl;
         p.load_board("board1.txt");
     }
     catch (player_exception pe){
