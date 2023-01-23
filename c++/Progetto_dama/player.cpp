@@ -196,6 +196,7 @@ void Player::load_board(const string& filename){
         while(getline(board, line)){
             int z=0;
             for (int j=0; j<8; j++){
+                //NON MI RICORDO PIU' PERCHE' FUNZIONA, QUINDI RICONTROLLARE GLI INDICI DI Z
                 if (z%2!=0) z++;
                 if ((i+j)%2!=0 and line[z]!=' ') {
                     player_exception pe;
@@ -325,7 +326,7 @@ attraverso una mossa valida. Nota: la mossa potrebbe essere stata eseguita da un
 non necessariamente da voi.
 
 Alcuni casi particolari:  
-Se le ultime due scacchiere sono identiche la mossa è considerata non valida (serve a fare perdere un giocatore che 
+- Se le ultime due scacchiere sono identiche la mossa è considerata non valida (serve a fare perdere un giocatore che 
 non ha eseguito una mossa durante il proprio turno).  
 - Se la penultima scacchiera è quella iniziale (succede al secondo turno di una partita), 
   valid_move() dovrebbe controllare che l’ultima scacchiera corrisponda ad una mossa del player 1 (x). 
@@ -336,6 +337,18 @@ Vedi doc per ulteriori spiegazioni */
 bool Player::valid_move() const {
     // giocatore esegue mossa -> salva nella nuova scacchiera -> se non valida, giocatore squalificato
     // controllo che non muova pedina in pos pari
+    if (!pimpl->history or !pimpl->history->next){
+        player_exception pe;
+        pe.t=player_exception::index_out_of_bounds;
+        pe.msg="valid_move chiamata su history minore di 2";
+        throw pe;
+    }
+    Impl::list aux = pimpl->history;
+    bool check = true;
+    for(int i=0; i<8; i++)
+        for (int j=0; j<8; j++)
+            if (aux->scacchiera[i][j] != pimpl->history->scacchiera[i][j]) check = false; //se le scacchiere sono diverse
+    if (check) return false;
     
     return true;
 }
@@ -363,18 +376,31 @@ In questa funzione (e nelle successive tre) basta controllare solo se un giocato
 non serve verificare la validità della mossa rispetto alla precedente (per questo abbiamo la funzione valid_move()), 
 nè se uno dei due giocatori è bloccato (in questa situazione, alla prossima mossa il giocatore bloccato 
 può solo aggiungere una scacchiera identica o non valida, e quindi perde automaticamente). */
-/*MANCA CONTROLLO CHE TUTTE LE PEDINE NEMICHE SIANO FINITE*/
+//COMPLETATO(?)
 bool Player::wins(int player_nr) const {
-    // errore out of bounds se il player non è nè 1 nè 2.
     if (player_nr!=1 and player_nr!=2) {
         player_exception pe;
         pe.t = player_exception::index_out_of_bounds;
         pe.msg = "errore! wins non ha selezionato un giocatore valido (1 o 2)";
         throw pe;
     }
-    return false;
-}
+    piece pl1, pl2;
+    if (pimpl->player_n==2) {
+        pl1 = (piece)0;
+        pl2 = (piece)2;
+    }
+    else{
+        pl1 = (piece)1;
+        pl2 = (piece)3;
+    }
+    for(int i=0; i<8; i++)
+        for (int j=0; j<8; j++)
+            if (pimpl->history->scacchiera[i][j] == pl1 or 
+                pimpl->history->scacchiera[i][j] == pl2) return false;
 
+    return true;
+}
+ 
 /* Restituisce true se e solo se l’ultima scacchiera (la più recente) in history è vincente per il 
 giocatore associato all’istanza corrente (this) di Player. Se la history è vuota, 
 lanciare una player_exception con err_type uguale a index_out_of_bounds. */
@@ -453,8 +479,7 @@ int main(){
     Player p(2);
 
     try{
-        //p.init_board("board1.txt");
-        //cout << p(3,0,0)<<endl;
+        p.init_board("board1.txt");
         p.load_board("board1.txt");
     }
     catch (player_exception pe){
