@@ -136,12 +136,11 @@ struct Player::Impl{
             }
         }
         prepend(s);
-        cout << "stampa dopo di mov: "<< endl;
-        stampa();
+        stampa(1);
+        cout << endl;
     }
 
     void move_ped(int i1, int j1, int r, int c, int er, int ec){
-        stampa();
         piece s[8][8];
         s[r][c] = history->scacchiera[i1][j1];
         s[i1][j1] = e;
@@ -153,7 +152,8 @@ struct Player::Impl{
             }
         }
         prepend(s);
-        stampa();
+        stampa(1);
+        cout << endl;
     }
 
     void stampa (){
@@ -163,17 +163,31 @@ struct Player::Impl{
             cout << "history:  " << i << endl;
             for(int i=0; i<8; i++){
                 for (int j=0; j<8; j++){
-                    if (aux->scacchiera[i][j] == 0) cout << "x";
-                    if (aux->scacchiera[i][j] == 1) cout << "o";
-                    if (aux->scacchiera[i][j] == 2) cout << "X";
-                    if (aux->scacchiera[i][j] == 3) cout << "O";
-                    if (aux->scacchiera[i][j] == 4) cout << " ";
+                    if (aux->scacchiera[i][j] == x) cout << "x";
+                    if (aux->scacchiera[i][j] == o) cout << "o";
+                    if (aux->scacchiera[i][j] == X) cout << "X";
+                    if (aux->scacchiera[i][j] == O) cout << "O";
+                    if (aux->scacchiera[i][j] == e) cout << " ";
                 }
                 cout << endl;
             }
             aux = aux->next;
             cout << endl;
             i++;
+        }
+    }
+
+    void stampa (int i){
+        list aux = history;
+        for(int i=0; i<8; i++){
+            for (int j=0; j<8; j++){
+                if (aux->scacchiera[i][j] == x) cout << "x";
+                if (aux->scacchiera[i][j] == o) cout << "o";
+                if (aux->scacchiera[i][j] == X) cout << "X";
+                if (aux->scacchiera[i][j] == O) cout << "O";
+                if (aux->scacchiera[i][j] == e) cout << " ";
+            }
+            cout << endl;
         }
     }
 };
@@ -346,15 +360,15 @@ void Player::load_board(const string& filename){
                 }
                 switch (line[z])
                 {
-                    case 'x': s[i][j] = (piece)0;
+                    case 'x': s[i][j] = x;
                         break;
-                    case 'o': s[i][j] = (piece)1;
+                    case 'o': s[i][j] = o;
                         break;
-                    case 'X': s[i][j] = (piece)2;
+                    case 'X': s[i][j] = X;
                         break;
-                    case 'O': s[i][j] = (piece)3;
+                    case 'O': s[i][j] = O;
                         break;
-                    case ' ': s[i][j] = (piece)4;
+                    case ' ': s[i][j] = e;
                         break;
                 }
                 z++;
@@ -464,6 +478,8 @@ void Player::move(){
     }
     //prendi prima pedina a caso e vedi se può muoversi, se sì fai prima mossa disponibile
     if (pimpl->player_n == 1){
+        pimpl->player_n = 2;
+        cout << "turno di x" << endl;
         for (int i=0; i<8; i++){
             for (int j=0; j<8; j++){
                 if (pimpl->history->scacchiera[i][j] == x or pimpl->history->scacchiera[i][j] == X){
@@ -505,8 +521,11 @@ void Player::move(){
                 }
             }
         }
+        pimpl->prepend(pimpl->history->scacchiera);
     }
     else {
+        pimpl->player_n = 1;
+        cout << "turno di o" << endl; 
         for (int i=0; i<8; i++){
             for (int j=0; j<8; j++){
                 if (pimpl->history->scacchiera[i][j] == o or pimpl->history->scacchiera[i][j] == O){
@@ -548,7 +567,9 @@ void Player::move(){
                 }
             }
         }
+        pimpl->prepend(pimpl->history->scacchiera);
     }
+    //manca promozione
 }
 
 /* Questa funzione compara le due scacchiere più recenti nella history (l’ultima e la penultima) e 
@@ -714,17 +735,12 @@ int Player::recurrence() const {
 
 int main(){
     Player p(1);
-    Player p1(2);
 
     try{
         string board_name =  "board_1.txt";		
         p.init_board(board_name);
         p.load_board(board_name);
-        p1.load_board(board_name);
-        int round = 2;
-        for (int i=0; i<5; i++){
-            p.move();
-        }
+        while(!p.wins()) p.move();
     }
     catch (player_exception pe){
         cout << pe.msg << endl;
