@@ -56,84 +56,127 @@ struct Player::Impl{
     }
 
     char check_above(int r, int c){
-        int r1 = r+1;
+        int r1 = r-1;
         int c1;
         char res = 'n';
         piece op, OP;
-        if (history->scacchiera[r][c] == 0 or history->scacchiera[r][c] == 2){
-            op = (piece)1;
-            OP = (piece)3;
+        if (history->scacchiera[r][c] == x or history->scacchiera[r][c] == X){
+            op = o;
+            OP = O;
         }
         else {
-            op = (piece)0;
-            OP = (piece)2;
+            op = x;
+            OP = X;
         }
 
         if (c>0) {
             c1 = c-1;
-            if (history->scacchiera[r1][c1] == 4) return 's';
+            if (history->scacchiera[r1][c1] == e) return 's';
             if (c1>0){
                 if (history->scacchiera[r1][c1] == op or (history->scacchiera[r1][c1] == OP and 
-                    (history->scacchiera[r][c]== 2 or history->scacchiera[r][c]== 3)))
-                    if (history->scacchiera[r1][c1] == 4) return 'S';
+                    (history->scacchiera[r][c] == X or history->scacchiera[r][c] == O)))
+                    if (history->scacchiera[r1-1][c1-1] == e) return 'S';
             }      
         }
         if (c<7) {
             c1 = c+1;
-            if (history->scacchiera[r1][c1] == 4) return 'd';
+            if (history->scacchiera[r1][c1] == e) return 'd';
             if (c<7){
                 if (history->scacchiera[r1][c1] == op or (history->scacchiera[r1][c1] == OP and 
-                    (history->scacchiera[r][c]== 2 or history->scacchiera[r][c]== 3)))
-                    if (history->scacchiera[r1][c1] == 4) return 'D';
+                    (history->scacchiera[r][c]== X or history->scacchiera[r][c]== O)))
+                    if (history->scacchiera[r1-1][c1+1] == e) return 'D';
             } 
         }
         return res;
     }
 
     char check_below(int r, int c){
-        int r1 = r-1;
+        int r1 = r+1;
         int c1;
         char res = 'n';
         piece op, OP;
-        if (s[r][c] == 0 or s[r][c] == 2){
-            op = (piece)1;
-            OP = (piece)3;
+        if (history->scacchiera[r][c] == x or history->scacchiera[r][c] == X){
+            op = o;
+            OP = O;
         }
         else {
-            op = (piece)0;
-            OP = (piece)2;
+            op = x;
+            OP = X;
         }
 
         if (c>0) {
             c1 = c-1;
-            if (history->scacchiera[r1][c1] == 4) return 's';
+            if (history->scacchiera[r1][c1] == e) return 's';
             if (c1>0){
                 if (history->scacchiera[r1][c1] == op or (history->scacchiera[r1][c1] == OP and 
-                    (history->scacchiera[r][c] == 2 or history->scacchiera[r][c] == 3)))
-                    if (history->scacchiera[r1][c1] == 4) return 'S';
+                    (history->scacchiera[r][c] == X or history->scacchiera[r][c] == O)))
+                    if (history->scacchiera[r1+1][c1-1] == e) return 'S';
             }      
         }
         if (c<7) {
             c1 = c+1;
-            if (history->scacchiera[r1][c1] == 4) return 'd';
+            if (history->scacchiera[r1][c1] == e) return 'd';
             if (c<7){
                 if (history->scacchiera[r1][c1] == op or (history->scacchiera[r1][c1] == OP and 
-                    (history->scacchiera[r][c] == 2 or history->scacchiera[r][c] == 3)))
-                    if (history->scacchiera[r1][c1] == 4) return 'D';
+                    (history->scacchiera[r][c]== X or history->scacchiera[r][c]== O)))
+                    if (history->scacchiera[r1+1][c1+1] == e) return 'D';
             } 
         }
         return res;
     }
 
-    void move_ped(int i, int j, int r, int c){
-        history->scacchiera[r][c] = history->scacchiera[i][j];
-        history->scacchiera[i][j] = e;
+    void move_ped(int i1, int j1, int r, int c){
+        piece s[8][8];
+        s[r][c] = history->scacchiera[i1][j1];
+        s[i1][j1] = e;
+        for (int i=0; i<8; i++){
+            for (int j=0; j<8; j++){
+                if ((i==r and j==c) or (i==i1 and j==j1)) continue;
+                s[i][j] = history->scacchiera[i][j];
+            }
+        }
+        prepend(s);
+        cout << "stampa dopo di mov: "<< endl;
+        stampa();
+    }
+
+    void move_ped(int i1, int j1, int r, int c, int er, int ec){
+        stampa();
+        piece s[8][8];
+        s[r][c] = history->scacchiera[i1][j1];
+        s[i1][j1] = e;
+        s[er][ec] = e;
+        for (int i=0; i<8; i++){
+            for (int j=0; j<8; j++){
+                if ((i==r and j==c) or (i==i1 and j==j1) or (i==er and j==ec)) continue;
+                s[i][j] = history->scacchiera[i][j];
+            }
+        }
+        prepend(s);
+        stampa();
+    }
+
+    void stampa (){
+        list aux = history;
+        int i=0;
+        while (aux){
+            cout << "history:  " << i << endl;
+            for(int i=0; i<8; i++){
+                for (int j=0; j<8; j++){
+                    if (aux->scacchiera[i][j] == 0) cout << "x";
+                    if (aux->scacchiera[i][j] == 1) cout << "o";
+                    if (aux->scacchiera[i][j] == 2) cout << "X";
+                    if (aux->scacchiera[i][j] == 3) cout << "O";
+                    if (aux->scacchiera[i][j] == 4) cout << " ";
+                }
+                cout << endl;
+            }
+            aux = aux->next;
+            cout << endl;
+            i++;
+        }
     }
 };
-
-/*  se colonna libera, muovo ez
-    se pedina nemica, e diagonale libera, mangio ez
-    se dama e dama nemica e diagonale libera, mangio */
 
 /* Costruttore: il costruttore accetta in input il tipo di giocatore (player1 oppure player2). 
 Di default il giocatore è player1. L’intero player_nr serve a decidere quali pedine sono le proprie: 
@@ -416,15 +459,92 @@ void Player::move(){
     if (!pimpl->history){
         player_exception pe;
         pe.t=player_exception::index_out_of_bounds;
-        pe.msg="valid_move chiamata su history minore di 2";
+        pe.msg="history vuota";
         throw pe;
     }
     //prendi prima pedina a caso e vedi se può muoversi, se sì fai prima mossa disponibile
     if (pimpl->player_n == 1){
         for (int i=0; i<8; i++){
             for (int j=0; j<8; j++){
-                if (pimpl->history->scacchiera[i][j] == 0 or pimpl->history->scacchiera[i][j] == 2){
-                    
+                if (pimpl->history->scacchiera[i][j] == x or pimpl->history->scacchiera[i][j] == X){
+                    if (pimpl->check_above(i,j) == 's') {
+                        pimpl->move_ped(i, j, i-1, j-1);
+                        return;
+                        }
+                    if (pimpl->check_above(i,j) == 'S') {
+                        pimpl->move_ped(i, j, i-2, j-2, i-1, j-1);
+                        return;
+                        }
+                    if (pimpl->check_above(i,j) == 'd') {
+                        pimpl->move_ped(i, j, i-1, j+1);
+                        return;
+                        }
+                    if (pimpl->check_above(i,j) == 'D') {
+                        pimpl->move_ped(i, j, i-2, j+2, i-1, j+1);
+                        return;
+                        }
+
+                    if (pimpl->history->scacchiera[i][j] == X){
+                        if (pimpl->check_below(i,j) == 's') {
+                            pimpl->move_ped(i, j, i+1, j-1);
+                            return;
+                            }
+                        if (pimpl->check_below(i,j) == 'S') {
+                            pimpl->move_ped(i, j, i+2, j-2, i+1, j-1);
+                            return;
+                            }
+                        if (pimpl->check_below(i,j) == 'd') {
+                            pimpl->move_ped(i, j, i+1, j+1);
+                            return;
+                            }
+                        if (pimpl->check_below(i,j) == 'D') {
+                            pimpl->move_ped(i, j, i+2, j+2, i+1, j+1);
+                            return;
+                            }
+                    }
+                }
+            }
+        }
+    }
+    else {
+        for (int i=0; i<8; i++){
+            for (int j=0; j<8; j++){
+                if (pimpl->history->scacchiera[i][j] == o or pimpl->history->scacchiera[i][j] == O){
+                    if (pimpl->check_below(i,j) == 's') {
+                        pimpl->move_ped(i, j, i+1, j-1);
+                        return;
+                        }
+                    if (pimpl->check_below(i,j) == 'S') {
+                        pimpl->move_ped(i, j, i+2, j-2, i+1, j-1);
+                        return;
+                        }
+                    if (pimpl->check_below(i,j) == 'd') {
+                        pimpl->move_ped(i, j, i+1, j+1);
+                        return;
+                        }
+                    if (pimpl->check_below(i,j) == 'D') {
+                        pimpl->move_ped(i, j, i+2, j+2, i+1, j+1);
+                        return;
+                        }
+
+                    if (pimpl->history->scacchiera[i][j] == X){
+                        if (pimpl->check_above(i,j) == 's') {
+                            pimpl->move_ped(i, j, i-1, j-1);
+                            return;
+                            }
+                        if (pimpl->check_above(i,j) == 'S') {
+                            pimpl->move_ped(i, j, i-2, j-2, i-1, j-1);
+                            return;
+                            }
+                        if (pimpl->check_above(i,j) == 'd') {
+                            pimpl->move_ped(i, j, i-1, j+1);
+                            return;
+                            }
+                        if (pimpl->check_above(i,j) == 'D') {
+                            pimpl->move_ped(i, j, i-2, j+2, i-1, j+1);
+                            return;
+                            }
+                    }
                 }
             }
         }
@@ -593,16 +713,18 @@ int Player::recurrence() const {
 }
 
 int main(){
-    Player p(2);
+    Player p(1);
+    Player p1(2);
 
     try{
-        p.init_board("board1.txt");
-        p.load_board("board1.txt");
-        p.store_board("board2.txt");
-        Player p1;
-        p1 = p;
-        cout << p1(0,0,0) << endl;
-        cout << p(0,0,0) << endl;
+        string board_name =  "board_1.txt";		
+        p.init_board(board_name);
+        p.load_board(board_name);
+        p1.load_board(board_name);
+        int round = 2;
+        for (int i=0; i<5; i++){
+            p.move();
+        }
     }
     catch (player_exception pe){
         cout << pe.msg << endl;
