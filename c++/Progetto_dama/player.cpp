@@ -68,24 +68,46 @@ struct Player::Impl{
             op = x;
             OP = X;
         }
-
-        if (c>0) {
-            c1 = c-1;
-            if (history->scacchiera[r1][c1] == e) return 's';
-            if (c1>0){
-                if (history->scacchiera[r1][c1] == op or (history->scacchiera[r1][c1] == OP and 
-                    (history->scacchiera[r][c] == X or history->scacchiera[r][c] == O)))
-                    if (history->scacchiera[r1-1][c1-1] == e) return 'S';
-            }      
+        int cas = genera();
+        if (cas%2 == 0){
+            if (c>0) {
+                c1 = c-1;
+                if (history->scacchiera[r1][c1] == e) return 's';
+                if (c1>0){
+                    if (history->scacchiera[r1][c1] == op or (history->scacchiera[r1][c1] == OP and 
+                        (history->scacchiera[r][c] == X or history->scacchiera[r][c] == O)))
+                        if (history->scacchiera[r1-1][c1-1] == e) return 'S';
+                }      
+            }
+            if (c<7) {
+                c1 = c+1;
+                if (history->scacchiera[r1][c1] == e) return 'd';
+                if (c<7){
+                    if (history->scacchiera[r1][c1] == op or (history->scacchiera[r1][c1] == OP and 
+                        (history->scacchiera[r][c]== X or history->scacchiera[r][c]== O)))
+                        if (history->scacchiera[r1-1][c1+1] == e) return 'D';
+                } 
+            }
         }
-        if (c<7) {
-            c1 = c+1;
-            if (history->scacchiera[r1][c1] == e) return 'd';
-            if (c<7){
-                if (history->scacchiera[r1][c1] == op or (history->scacchiera[r1][c1] == OP and 
-                    (history->scacchiera[r][c]== X or history->scacchiera[r][c]== O)))
-                    if (history->scacchiera[r1-1][c1+1] == e) return 'D';
-            } 
+        else {
+            if (c<7) {
+                c1 = c+1;
+                if (history->scacchiera[r1][c1] == e) return 'd';
+                if (c<7){
+                    if (history->scacchiera[r1][c1] == op or (history->scacchiera[r1][c1] == OP and 
+                        (history->scacchiera[r][c]== X or history->scacchiera[r][c]== O)))
+                        if (history->scacchiera[r1-1][c1+1] == e) return 'D';
+                } 
+            }
+            if (c>0) {
+                c1 = c-1;
+                if (history->scacchiera[r1][c1] == e) return 's';
+                if (c1>0){
+                    if (history->scacchiera[r1][c1] == op or (history->scacchiera[r1][c1] == OP and 
+                        (history->scacchiera[r][c] == X or history->scacchiera[r][c] == O)))
+                        if (history->scacchiera[r1-1][c1-1] == e) return 'S';
+                }      
+            }
         }
         return res;
     }
@@ -103,54 +125,80 @@ struct Player::Impl{
             op = x;
             OP = X;
         }
-
-        if (c>0) {
-            c1 = c-1;
-            if (history->scacchiera[r1][c1] == e) return 's';
-            if (c1>0){
-                if (history->scacchiera[r1][c1] == op or (history->scacchiera[r1][c1] == OP and 
-                    (history->scacchiera[r][c] == X or history->scacchiera[r][c] == O)))
-                    if (history->scacchiera[r1+1][c1-1] == e) return 'S';
-            }      
+        int cas = genera();
+        if (cas%2 == 0){
+            if (c>0) {
+                c1 = c-1;
+                if (history->scacchiera[r1][c1] == e) return 's';
+                if (c1>0){
+                    if (history->scacchiera[r1][c1] == op or (history->scacchiera[r1][c1] == OP and 
+                        (history->scacchiera[r][c] == X or history->scacchiera[r][c] == O)))
+                        if (history->scacchiera[r1+1][c1-1] == e) return 'S';
+                }      
+            }
+            if (c<7) {
+                c1 = c+1;
+                if (history->scacchiera[r1][c1] == e) return 'd';
+                if (c<7){
+                    if (history->scacchiera[r1][c1] == op or (history->scacchiera[r1][c1] == OP and 
+                        (history->scacchiera[r][c]== X or history->scacchiera[r][c]== O)))
+                        if (history->scacchiera[r1+1][c1+1] == e) return 'D';
+                } 
+            }
         }
-        if (c<7) {
-            c1 = c+1;
-            if (history->scacchiera[r1][c1] == e) return 'd';
-            if (c<7){
-                if (history->scacchiera[r1][c1] == op or (history->scacchiera[r1][c1] == OP and 
-                    (history->scacchiera[r][c]== X or history->scacchiera[r][c]== O)))
-                    if (history->scacchiera[r1+1][c1+1] == e) return 'D';
-            } 
+        else {
+            if (c<7) {
+                c1 = c+1;
+                if (history->scacchiera[r1][c1] == e) return 'd';
+                if (c<7){
+                    if (history->scacchiera[r1][c1] == op or (history->scacchiera[r1][c1] == OP and 
+                        (history->scacchiera[r][c]== X or history->scacchiera[r][c]== O)))
+                        if (history->scacchiera[r1+1][c1+1] == e) return 'D';
+                } 
+            }
+            if (c>0) {
+                c1 = c-1;
+                if (history->scacchiera[r1][c1] == e) return 's';
+                if (c1>0){
+                    if (history->scacchiera[r1][c1] == op or (history->scacchiera[r1][c1] == OP and 
+                        (history->scacchiera[r][c] == X or history->scacchiera[r][c] == O)))
+                        if (history->scacchiera[r1+1][c1-1] == e) return 'S';
+                }      
+            }
         }
         return res;
     }
 
-    void move_ped(int i1, int j1, int r, int c){
+    void move_ped(int pr, int pc, int dr, int dc){
         piece s[8][8];
-        s[r][c] = history->scacchiera[i1][j1];
-        s[i1][j1] = e;
+        s[dr][dc] = history->scacchiera[pr][pc];
+        s[pr][pc] = e;
         for (int i=0; i<8; i++){
             for (int j=0; j<8; j++){
-                if ((i==r and j==c) or (i==i1 and j==j1)) continue;
+                if ((i==pr and j==pc) or (i==dr and j==dc)) continue;
                 s[i][j] = history->scacchiera[i][j];
             }
         }
+        if (dr == 0 and s[dr][dc] == x) s[dr][dc] = X;
+        if (dr == 7 and s[dr][dc] == o) s[dr][dc] = O;
         prepend(s);
         stampa(1);
         cout << endl;
     }
 
-    void move_ped(int i1, int j1, int r, int c, int er, int ec){
+    void move_ped(int pr, int pc, int dr, int dc, int er, int ec){
         piece s[8][8];
-        s[r][c] = history->scacchiera[i1][j1];
-        s[i1][j1] = e;
+        s[dr][dc] = history->scacchiera[pr][pc];
+        s[pr][pc] = e;
         s[er][ec] = e;
         for (int i=0; i<8; i++){
             for (int j=0; j<8; j++){
-                if ((i==r and j==c) or (i==i1 and j==j1) or (i==er and j==ec)) continue;
+                if ((i==pr and j==pc) or (i==dr and j==dc) or (i==er and j==ec)) continue;
                 s[i][j] = history->scacchiera[i][j];
             }
         }
+        if (dr == 0 and s[dr][dc] == x) s[dr][dc] = X;
+        if (dr == 7 and s[dr][dc] == o) s[dr][dc] = O;
         prepend(s);
         stampa(1);
         cout << endl;
@@ -190,6 +238,12 @@ struct Player::Impl{
             cout << endl;
         }
     }
+
+    int genera (){
+        int cas;
+        cas = rand()%100+1;
+        return cas;
+    }
 };
 
 /* Costruttore: il costruttore accetta in input il tipo di giocatore (player1 oppure player2). 
@@ -214,6 +268,7 @@ Player::Player(int player_nr){
         pimpl->history = nullptr;
         pimpl->player_n = player_nr;
     }
+    srand (time(NULL));
 }
 
 /* Distruttore: attenzione a rilasciare correttamente le risorse allocate. 
@@ -238,7 +293,7 @@ Player::Player(const Player& copied_player){
 /* Copy assignment: tutti i dati del Player in input vanno copiati in this. 
 Attenzione: non dimenticatevi di de-allocare la memoria di this prima di 
 effettuare una nuova allocazione e copia. */
-/* COMPLETATO (?) */
+/* COMPLETATO */
 Player& Player::operator=(const Player& copied_player){
     // dealloco i dati di this
     pimpl->dealloc_history();
@@ -283,7 +338,10 @@ Player::piece Player::operator()(int r, int c, int history_offset) const {
     }
     //scorro fino a scacchiera giusta, finché esistono scacchiere
     Impl::list aux = pimpl->history;
-    while (aux and history_offset>0) aux = aux->next;
+    while (aux and history_offset>0) {
+        aux = aux->next;
+        history_offset--;
+    }
     //exception se non esiste scacchiera con quell'offset
     if (history_offset>0 or !aux){
         player_exception pe;
@@ -384,11 +442,14 @@ void Player::load_board(const string& filename){
 Se il file esiste già, sovrascriverlo. Deve venire salvata la “history-offset”-esima scacchiera più recente 
 (ossia, se history-offset=0, la più recente; se history-offset=1 la penultima, e così via). 
 Se history_offset è più lungo della history, lanciare una player_exception con err_type uguale a index_out_of_bounds. */
-// COMPLETATO(?)
+// COMPLETATO
 void Player::store_board(const string& filename, int history_offset)const {
     //scorro fino a scacchiera giusta, finché esistono scacchiere
     Impl::list aux = pimpl->history;
-    while (aux and history_offset>0) aux = aux->next;
+    while (aux and history_offset>0) {
+        aux = aux->next;
+        history_offset--;
+    }
     //exception se non esiste scacchiera con quell'offset
     if (history_offset>0 or !aux){
         player_exception pe;
@@ -476,59 +537,82 @@ void Player::move(){
         pe.msg="history vuota";
         throw pe;
     }
+    int cas = pimpl->genera();
+    int cas1 = pimpl->genera();
     //prendi prima pedina a caso e vedi se può muoversi, se sì fai prima mossa disponibile
     if (pimpl->player_n == 1){
+        //DA ELIMINARE DUE RIGHE
         pimpl->player_n = 2;
         cout << "turno di x" << endl;
         for (int i=0; i<8; i++){
             for (int j=0; j<8; j++){
-                if (pimpl->history->scacchiera[i][j] == x or pimpl->history->scacchiera[i][j] == X){
+                if (pimpl->history->scacchiera[i][j] == x){
                     if (pimpl->check_above(i,j) == 's') {
                         pimpl->move_ped(i, j, i-1, j-1);
                         return;
-                        }
+                    }
                     if (pimpl->check_above(i,j) == 'S') {
                         pimpl->move_ped(i, j, i-2, j-2, i-1, j-1);
                         return;
-                        }
+                    }
                     if (pimpl->check_above(i,j) == 'd') {
                         pimpl->move_ped(i, j, i-1, j+1);
                         return;
-                        }
+                    }
                     if (pimpl->check_above(i,j) == 'D') {
                         pimpl->move_ped(i, j, i-2, j+2, i-1, j+1);
                         return;
-                        }
-
-                    if (pimpl->history->scacchiera[i][j] == X){
+                    }
+                }
+                if (pimpl->history->scacchiera[i][j] == X){
+                    if (cas1%2 == 0) {
                         if (pimpl->check_below(i,j) == 's') {
                             pimpl->move_ped(i, j, i+1, j-1);
                             return;
-                            }
+                        }
                         if (pimpl->check_below(i,j) == 'S') {
                             pimpl->move_ped(i, j, i+2, j-2, i+1, j-1);
                             return;
-                            }
+                        }
                         if (pimpl->check_below(i,j) == 'd') {
                             pimpl->move_ped(i, j, i+1, j+1);
-                            return;
+                        return;
                             }
                         if (pimpl->check_below(i,j) == 'D') {
                             pimpl->move_ped(i, j, i+2, j+2, i+1, j+1);
                             return;
-                            }
+                        }
                     }
+                    else {
+                        if (pimpl->check_above(i,j) == 's') {
+                            pimpl->move_ped(i, j, i-1, j-1);
+                            return;
+                        }
+                        if (pimpl->check_above(i,j) == 'S') {
+                            pimpl->move_ped(i, j, i-2, j-2, i-1, j-1);
+                            return;
+                        }
+                        if (pimpl->check_above(i,j) == 'd') {
+                            pimpl->move_ped(i, j, i-1, j+1);
+                            return;
+                        }
+                        if (pimpl->check_above(i,j) == 'D') {
+                            pimpl->move_ped(i, j, i-2, j+2, i-1, j+1);
+                            return;
+                        }
+                    } 
                 }
             }
         }
         pimpl->prepend(pimpl->history->scacchiera);
     }
     else {
+        //DA ELIMINARE DUE RIGHE
         pimpl->player_n = 1;
         cout << "turno di o" << endl; 
         for (int i=0; i<8; i++){
-            for (int j=0; j<8; j++){
-                if (pimpl->history->scacchiera[i][j] == o or pimpl->history->scacchiera[i][j] == O){
+            for (int j=7; j>=0; j--){
+                if (pimpl->history->scacchiera[i][j] == o){
                     if (pimpl->check_below(i,j) == 's') {
                         pimpl->move_ped(i, j, i+1, j-1);
                         return;
@@ -545,31 +629,51 @@ void Player::move(){
                         pimpl->move_ped(i, j, i+2, j+2, i+1, j+1);
                         return;
                         }
-
-                    if (pimpl->history->scacchiera[i][j] == X){
+                }
+                if (pimpl->history->scacchiera[i][j] == O){
+                    if (cas1%2 == 0) {
+                        if (pimpl->check_below(i,j) == 's') {
+                            pimpl->move_ped(i, j, i+1, j-1);
+                            return;
+                        }
+                        if (pimpl->check_below(i,j) == 'S') {
+                            pimpl->move_ped(i, j, i+2, j-2, i+1, j-1);
+                            return;
+                        }
+                        if (pimpl->check_below(i,j) == 'd') {
+                            pimpl->move_ped(i, j, i+1, j+1);
+                        return;
+                            }
+                        if (pimpl->check_below(i,j) == 'D') {
+                            pimpl->move_ped(i, j, i+2, j+2, i+1, j+1);
+                            return;
+                        }
+                    }
+                    else{
                         if (pimpl->check_above(i,j) == 's') {
                             pimpl->move_ped(i, j, i-1, j-1);
                             return;
-                            }
+                        }
                         if (pimpl->check_above(i,j) == 'S') {
                             pimpl->move_ped(i, j, i-2, j-2, i-1, j-1);
                             return;
-                            }
+                        }
                         if (pimpl->check_above(i,j) == 'd') {
                             pimpl->move_ped(i, j, i-1, j+1);
                             return;
-                            }
+                        }
                         if (pimpl->check_above(i,j) == 'D') {
                             pimpl->move_ped(i, j, i-2, j+2, i-1, j+1);
                             return;
-                            }
-                    }
+                        }
+                    } 
                 }
+                
             }
         }
         pimpl->prepend(pimpl->history->scacchiera);
     }
-    //manca promozione
+    //manca gestione movimento posizione senza che esegua stesse mosse
 }
 
 /* Questa funzione compara le due scacchiere più recenti nella history (l’ultima e la penultima) e 
@@ -599,23 +703,28 @@ bool Player::valid_move() const {
         //check che sia mossa di x
     }
 
-    Impl::list aux = pimpl->history;
+    //check scacchiere diverse
+    Impl::list aux = pimpl->history->next;
     bool check = true;
     for(int i=0; i<8; i++)
         for (int j=0; j<8; j++)
-            if (aux->scacchiera[i][j] != pimpl->history->scacchiera[i][j]) check = false; //se le scacchiere sono diverse
-    if (check) return false; //se le scacchiere sono uguali ritorna false
+            if (aux->scacchiera[i][j] != pimpl->history->scacchiera[i][j]) check = false;
+    if (check == true) return false; 
+
+    //check promozione
+    for (int i=0; i<7; i++){
+        if (pimpl->history->scacchiera[0][i] == x ) return false;
+        if (pimpl->history->scacchiera[7][i] == o ) return false; 
+    }
 
     //check movimento legale
 
-    //check promozione
-    
     return true;
 }
 
 /* La funzione rimuove dalla history la scacchiera più recente. Se la funzione viene chiamata su una history vuota, 
 va lanciata una player_exception con err_type uguale a index_out_of_bounds. */
-//COMPLETATO(?)
+//COMPLETATO
 void Player::pop(){
     if (!pimpl->history){
         player_exception pe;
@@ -740,7 +849,15 @@ int main(){
         string board_name =  "board_1.txt";		
         p.init_board(board_name);
         p.load_board(board_name);
-        while(!p.wins()) p.move();
+        //while (!p.wins()) 
+        for (int i=0; i<100; i++){
+            p.move();
+            if (!p.valid_move()) {
+                cout << "PERSO" << endl;
+                break;
+            } 
+        }
+        
     }
     catch (player_exception pe){
         cout << pe.msg << endl;
