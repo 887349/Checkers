@@ -16,3 +16,12 @@ La verifica di termine partita viene fatto dai prof anche nel caso in cui vengon
         operatore = sembra completato
         operatore () sembra completato
         lavorando su init_board, manca da salvare scacchiera in
+
+CONTROLLI DA FARE 
+- mi serve fare una new in =?
+- pedina random nella move
+- controllare se wins funziona 
+- valid_move
+- load_board controllo se il file esiste 
+- togliere righe di cambio player_n in move !!!!!!!!
+- da sistemare copy constructor

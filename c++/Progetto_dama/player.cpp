@@ -287,7 +287,16 @@ Attenzione ad allocare correttamente la memoria. */
 /* COMPLETATO */
 Player::Player(const Player& copied_player){
     //chiamo operatore di =
-    *this = copied_player;
+    pimpl = new Impl;
+    pimpl->history = nullptr;
+    Impl::list aux = copied_player.pimpl->history;
+    pimpl->player_n = copied_player.pimpl->player_n;
+    while (aux){
+        for (int i=0; i<8; i++)
+            for (int j=0; j<8; j++) 
+                pimpl->append(aux->scacchiera);        
+        aux=aux->next;
+    }
 }
 
 /* Copy assignment: tutti i dati del Player in input vanno copiati in this. 
@@ -295,8 +304,10 @@ Attenzione: non dimenticatevi di de-allocare la memoria di this prima di
 effettuare una nuova allocazione e copia. */
 /* COMPLETATO */
 Player& Player::operator=(const Player& copied_player){
+    if (&copied_player == this) return *this;
     // dealloco i dati di this
     pimpl->dealloc_history();
+    pimpl->history=nullptr;
     //copio dati di copie_player in nuovo
     Impl::list aux = copied_player.pimpl->history;
     pimpl->player_n = copied_player.pimpl->player_n;
@@ -399,16 +410,20 @@ void Player::load_board(const string& filename){
         throw pe;
     }
 
-    //MANCA ERRORE PER TROPPE PEDINE etc etc
-
+    int px=0, po=0;
     piece s[8][8];
     if (board.is_open()){
         string line;
         int i=0;
         while(getline(board, line)){
+            if (line.size()!=15){
+                player_exception pe;
+                pe.t = player_exception::invalid_board;
+                pe.msg = "Errore! Formato file non valido";
+                throw pe;
+            }
             int z=0;
             for (int j=0; j<8; j++){
-                //NON MI RICORDO PIU' PERCHE' FUNZIONA, QUINDI RICONTROLLARE GLI INDICI DI Z
                 if (z%2!=0) z++;
                 if ((i+j)%2!=0 and line[z]!=' ') {
                     player_exception pe;
@@ -416,6 +431,8 @@ void Player::load_board(const string& filename){
                     pe.msg = "Errore! Ci sono pedine in celle bianche";
                     throw pe;
                 }
+                if (line[z] == x or line[z] == X) px++;
+                if (line[z] == o or line[z] == O) po++;
                 switch (line[z])
                 {
                     case 'x': s[i][j] = x;
@@ -432,6 +449,12 @@ void Player::load_board(const string& filename){
                 z++;
             }
             ++i;
+        }
+        if (px>12 or po>12){
+            player_exception pe;
+            pe.t = player_exception::invalid_board;
+            pe.msg = "Errore! Ci sono troppe pedine";
+            throw pe;
         }
         pimpl->prepend(s);
         board.close();
@@ -616,15 +639,15 @@ void Player::move(){
                     if (pimpl->check_below(i,j) == 's') {
                         pimpl->move_ped(i, j, i+1, j-1);
                         return;
-                        }
+                    }
                     if (pimpl->check_below(i,j) == 'S') {
                         pimpl->move_ped(i, j, i+2, j-2, i+1, j-1);
                         return;
-                        }
+                    }
                     if (pimpl->check_below(i,j) == 'd') {
                         pimpl->move_ped(i, j, i+1, j+1);
                         return;
-                        }
+                    }
                     if (pimpl->check_below(i,j) == 'D') {
                         pimpl->move_ped(i, j, i+2, j+2, i+1, j+1);
                         return;
@@ -698,27 +721,66 @@ bool Player::valid_move() const {
         throw pe;
     }
 
+    Impl::list aux = pimpl->history->next;
+    int pi, pj;
     //check che sia stata mossa x come prima mossa
     if (!pimpl->history->next->next){
-        //check che sia mossa di x
+        for (int i=0; i<8; i++)
+            for (int j=0; j<8; j++)
+                if (pimpl->history->scacchiera[i][j] != aux->scacchiera[i][j] 
+                    and i != 4 and aux->scacchiera[i][j] != x ) return false;
     }
 
-    //check scacchiere diverse
-    Impl::list aux = pimpl->history->next;
+    //check ultime due scacchiere diverse
     bool check = true;
-    for(int i=0; i<8; i++)
-        for (int j=0; j<8; j++)
-            if (aux->scacchiera[i][j] != pimpl->history->scacchiera[i][j]) check = false;
+    for(int i=0; i<8; i++){
+        for (int j=0; j<8; j++){
+            if (aux->scacchiera[i][j] != pimpl->history->scacchiera[i][j]) {
+                check = false;
+                pi = i; 
+                pj = j;
+            }
+        }         
+    }
+        
     if (check == true) return false; 
 
     //check promozione
-    for (int i=0; i<7; i++){
+    for (int i=0; i<8; i++){
         if (pimpl->history->scacchiera[0][i] == x ) return false;
         if (pimpl->history->scacchiera[7][i] == o ) return false; 
     }
 
     //check movimento legale
+    //o che va nel verso sbagliato
+    if (pimpl->history->scacchiera[pi][pj] == o) return false;
+    if (pimpl->history->scacchiera[pi][pj] == e){
+        //x che va nel verso sbagliato
+        if (aux->scacchiera[pi][pj] == x) return false;
+        //se fosse stata fassa una mossa legit, avrei incontrato la cella diversa prima dell'ultima riga
+        if (pi == 7) return false;
+        //se sono nell'estremo sx
+        if (pj == 0)
+            //se l'unica posizione in cui era possibile trovare l'altra modifica non è cambiata
+            if (pimpl->history->scacchiera[pi+1][pj+1] == aux->scacchiera[pi+1][pj+1]) return false;
+            //se sembra esserci stata una mangiata
+            //controllo che non sia una x che ha fatto una mangiata nel verso sbagliato, o che siamo in riga troppo bassa 
+            //o che una pedina sia semplicemente sparita
+            else if (pimpl->history->scacchiera[pi+1][pj+1] == e 
+                    and (pi+2>7 or pimpl->history->scacchiera[pi+2][pj+2] == e or pimpl->history->scacchiera[pi+2][pj+2] == x)) return false;
+        //estremo dx
+        if (pj == 7)
+            if (pimpl->history->scacchiera[pi+1][pj-1] == aux->scacchiera[pi+1][pj-1]) return false;
+            else if (pimpl->history->scacchiera[pi+1][pj-1] == e 
+                    and (pi+2>7 or pimpl->history->scacchiera[pi+2][pj-2] == e or pimpl->history->scacchiera[pi+2][pj-2] == x)) return false;
+        if (pj>0 and pj<7){
+            //valuto da che parte è stata fatta la mossa
+            if ()
+        }
 
+        
+    }
+        
     return true;
 }
 
@@ -753,12 +815,12 @@ bool Player::wins(int player_nr) const {
     }
     piece pl1, pl2;
     if (pimpl->player_n==2) {
-        pl1 = (piece)0;
-        pl2 = (piece)2;
+        pl1 = x;
+        pl2 = X;
     }
     else{
-        pl1 = (piece)1;
-        pl2 = (piece)3;
+        pl1 = o;
+        pl2 = O;
     }
     for(int i=0; i<8; i++)
         for (int j=0; j<8; j++)
@@ -821,7 +883,7 @@ int Player::recurrence() const {
     if (!pimpl->history){
         player_exception pe;
         pe.t=player_exception::index_out_of_bounds;
-        pe.msg="recurrance chiamata su history vuota";
+        pe.msg = "recurrance chiamata su history vuota";
         throw pe;
     }
     int res=0;
@@ -844,24 +906,22 @@ int Player::recurrence() const {
 
 int main(){
     Player p(1);
-
-    try{
+    p(0,0,0);
+    /*try{
         string board_name =  "board_1.txt";		
         p.init_board(board_name);
         p.load_board(board_name);
         //while (!p.wins()) 
-        for (int i=0; i<100; i++){
+        for (int i=0; i<10; i++){
             p.move();
-            if (!p.valid_move()) {
-                cout << "PERSO" << endl;
-                break;
-            } 
         }
         
     }
     catch (player_exception pe){
         cout << pe.msg << endl;
-    }   
+    } 
+    Player p2(p);
+    //p2.move();*/
 
     return 0;
 }

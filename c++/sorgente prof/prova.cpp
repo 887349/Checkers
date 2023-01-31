@@ -7,7 +7,8 @@ using namespace std;
    ./nome_eseguibile                           per eseguire
    cd nome-file                                per entrare in quel path
    ls                                          per leggere file nel dominio
-   valgrind --leak-check=full ./eseguibile     per full memory leak check*/
+   valgrind --leak-check=full ./player     per full memory leak check
+   valgrind --leak-check=full --show-reachable=yes --errors-for-leak-kinds=all ./player*/
    
 
 enum piece {x, o, X, O, e};
